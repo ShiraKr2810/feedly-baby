@@ -1,5 +1,5 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { ReactNode } from 'react';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'night';
 
@@ -11,13 +11,19 @@ const variants: Record<Variant, string> = {
   night: 'bg-night-blue text-primary-text shadow-night hover:bg-primary',
 };
 
+type ButtonProps = Omit<HTMLMotionProps<'button'>, 'children'> & {
+  variant?: Variant;
+  icon?: ReactNode;
+  children?: ReactNode;
+};
+
 export function Button({
   children,
   className = '',
   variant = 'primary',
   icon,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; icon?: ReactNode }) {
+}: ButtonProps) {
   return (
     <motion.button
       whileTap={{ scale: 0.97 }}

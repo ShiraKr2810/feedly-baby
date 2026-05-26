@@ -1,7 +1,6 @@
-import { HTMLAttributes } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 
-export function Card({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
+export function Card({ className = '', ...props }: HTMLMotionProps<'div'>) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
