@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #334155;
+  background: #f8fbff;
+  font-family: Assistant, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  direction: rtl;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.soft-scroll::-webkit-scrollbar {
+  width: 0;
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-2xl border border-line bg-white/90 px-4 py-3 text-base text-text-main shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none transition placeholder:text-text-muted/55 focus:border-primary-hover focus:bg-white focus:ring-4 focus:ring-primary/35;
+  }
+
+  .night-field {
+    @apply border-night-blue/20 bg-white/10 text-white placeholder:text-white/45 focus:border-night-blue focus:ring-night-blue/25;
+  }
+}
