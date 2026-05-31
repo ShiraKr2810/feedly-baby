@@ -24,7 +24,7 @@ export function Pumping({ babyId, items, onSave, onDelete, setPage }: { babyId: 
   };
 
   return <LogScreen title="שאיבות" active="pumping" setPage={setPage} icon={<Milk />} empty="עוד לא נשמרו שאיבות">
-    <div className="rounded-3xl border border-white/85 bg-white/90 p-5 shadow-soft">
+    <div className="theme-card rounded-3xl p-5">
       <Fields form={form} setForm={setForm} kind="pumping" />
       <Button className="mt-4 w-full" onClick={submit}>{editing ? 'עדכון שאיבה' : 'שמירת שאיבה'}</Button>
     </div>
@@ -55,9 +55,9 @@ export function ItemList<T extends { id: string; note?: string }>({ items, rende
   if (items.length === 0) return <EmptyState icon={<Milk />} title="רשימה ריקה" text="כשתוסיפי פריט חדש הוא יישמר כאן." />;
   return <div className="space-y-3">
     {[...items].sort((a: any, b: any) => new Date(b.time).getTime() - new Date(a.time).getTime()).map((item) => (
-      <article key={item.id} className="rounded-3xl border border-white/85 bg-white/90 p-4 shadow-soft">
+      <article key={item.id} className="theme-card rounded-3xl p-4">
         <div className="flex items-center justify-between gap-3">
-          <div><p className="font-extrabold">{render(item)}</p>{item.note && <p className="text-sm text-text-main/60">{item.note}</p>}</div>
+          <div><p className="font-extrabold">{render(item)}</p>{item.note && <p className="theme-muted text-sm">{item.note}</p>}</div>
           <div className="flex gap-1">
             <Button variant="ghost" className="h-10 min-h-10 px-3" onClick={() => onEdit(item)} aria-label="עריכה"><Pencil size={17} /></Button>
             <Button variant="ghost" className="h-10 min-h-10 px-3 text-text-muted" onClick={() => onDelete(item.id)} aria-label="מחיקה"><Trash2 size={17} /></Button>

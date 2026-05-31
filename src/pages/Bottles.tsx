@@ -16,7 +16,7 @@ export function Bottles({ babyId, items, onSave, onDelete, setPage }: { babyId: 
     setEditing(null); setForm(freshForm());
   };
   return <LogScreen title="בקבוקים" active="bottles" setPage={setPage} icon={null} empty="">
-    <div className="space-y-3 rounded-3xl border border-white/85 bg-white/90 p-5 shadow-soft">
+    <div className="theme-card space-y-3 rounded-3xl p-5">
       <input className="field" type="datetime-local" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} />
       <select className="field" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}><option value="breast_milk">חלב שאוב</option><option value="formula">תמ״ל</option><option value="other">אחר</option></select>
       <input className="field" type="number" min="0" value={form.amountMl} onChange={(e) => setForm({ ...form, amountMl: Number(e.target.value) })} placeholder="כמות במ״ל" />

@@ -1,21 +1,27 @@
-import { Baby, FeedingSession, Page, AppSettings } from '../types';
+import { ActiveTimer, Baby, FeedingSession, Page, AppSettings } from '../types';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { formatDuration, formatTime, getBabyAge, greeting, isNightSession, isSameDay, timeAgo } from '../services/dateUtils';
 import { latestCompletedFeeding, recommendedSide, sideLabel } from '../services/feedingUtils';
-import { Baby as BabyIcon, BellRing, Moon, Milk, Plus, Droplets } from 'lucide-react';
+import { Baby as BabyIcon, BellRing, Moon, Milk, Plus, Droplets, TimerReset, Trash2 } from 'lucide-react';
 
 export function Dashboard({
   baby,
   feedings,
   settings,
   isNight,
+  activeTimer,
+  onFinishActiveTimer,
+  onCancelActiveTimer,
   setPage,
 }: {
   baby: Baby;
   feedings: FeedingSession[];
   settings: AppSettings;
   isNight: boolean;
+  activeTimer: ActiveTimer | null;
+  onFinishActiveTimer: () => void;
+  onCancelActiveTimer: () => void;
   setPage: (page: Page) => void;
 }) {
   const latest = latestCompletedFeeding(feedings);
@@ -34,6 +40,7 @@ export function Dashboard({
           </div>
           <div className="rounded-2xl bg-primary/15 p-3 text-primary-text"><Moon /></div>
         </div>
+        {activeTimer && <ActiveTimerRecovery timer={activeTimer} isNight onContinue={() => setPage('timer')} onFinish={onFinishActiveTimer} onCancel={onCancelActiveTimer} />}
         {unfinished.length > 0 && (
           <button onClick={() => setPage('night')} className="w-full rounded-3xl border border-primary/25 bg-primary/10 p-4 text-right shadow-night">
             <p className="font-extrabold text-primary-text">יש הנקה שממתינה לסגירה בבוקר</p>
@@ -71,6 +78,8 @@ export function Dashboard({
         <Button className="mt-5 w-full text-lg" icon={<Milk />} onClick={() => setPage('timer')}>התחלתי הנקה</Button>
       </header>
 
+      {activeTimer && <ActiveTimerRecovery timer={activeTimer} onContinue={() => setPage('timer')} onFinish={onFinishActiveTimer} onCancel={onCancelActiveTimer} />}
+
       {unfinished.length > 0 && (
         <button onClick={() => setPage('night')} className="w-full rounded-3xl border border-pink/45 bg-pink-surface p-4 text-right text-primary-text">
           <div className="flex items-center gap-2 font-extrabold"><BellRing size={20} /> יש הנקה לא גמורה מהלילה</div>
@@ -107,5 +116,22 @@ export function Dashboard({
         <Button variant="secondary" className="flex-col px-2" icon={<Droplets />} onClick={() => setPage('diapers')}>הוספת טיטול</Button>
       </div>
     </section>
+  );
+}
+
+function ActiveTimerRecovery({ timer, isNight = false, onContinue, onFinish, onCancel }: { timer: ActiveTimer; isNight?: boolean; onContinue: () => void; onFinish: () => void; onCancel: () => void }) {
+  const title = timer.type === 'breastfeeding' ? 'יש הנקה פעילה' : 'יש שאיבה פעילה';
+  return (
+    <div className={`rounded-3xl p-4 shadow-soft ${isNight ? 'border border-night-blue/20 bg-night-card' : 'border border-primary/50 bg-blue-surface'}`}>
+      <div className="mb-3 flex items-center gap-2">
+        <TimerReset size={20} />
+        <p className="font-extrabold">{title}</p>
+      </div>
+      <div className="grid gap-2">
+        <Button variant={isNight ? 'night' : 'primary'} className="w-full" onClick={onContinue}>המשך טיימר</Button>
+        {timer.type === 'breastfeeding' && <Button variant="secondary" className="w-full" onClick={onFinish}>סיים ושמור</Button>}
+        <Button variant="ghost" className={isNight ? 'text-white/70' : 'text-text-muted'} icon={<Trash2 size={16} />} onClick={onCancel}>בטלי טיימר</Button>
+      </div>
+    </div>
   );
 }

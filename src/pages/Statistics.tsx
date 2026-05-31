@@ -30,12 +30,12 @@ export function Statistics({ feedings, pumping, bottles, settings }: { feedings:
     <section className="space-y-4">
       <div><p className="text-sm font-bold text-primary-hover">תמונה יומית</p><h1 className="text-3xl font-extrabold">סטטיסטיקות</h1></div>
       <div className="grid grid-cols-2 gap-3">
-        <Card><p className="text-sm text-text-main/55">הנקות היום</p><b className="text-3xl">{today.length}</b></Card>
-        <Card><p className="text-sm text-text-main/55">זמן הנקה היום</p><b className="text-2xl">{formatDuration(totalToday)}</b></Card>
-        <Card><p className="text-sm text-text-main/55">משך ממוצע</p><b className="text-2xl">{formatDuration(avg)}</b></Card>
-        <Card><p className="text-sm text-text-main/55">מאז האכלה</p><b className="text-xl">{timeAgo(latest?.endTime)}</b></Card>
-        <Card><p className="text-sm text-text-main/55">צד דומיננטי</p><b className="text-2xl">{sideTotals.right >= sideTotals.left ? 'ימין' : 'שמאל'}</b></Card>
-        <Card><p className="text-sm text-text-main/55">הנקות לילה</p><b className="text-3xl">{nightFeedings}</b></Card>
+        <Card><p className="theme-muted text-sm">הנקות היום</p><b className="text-3xl">{today.length}</b></Card>
+        <Card><p className="theme-muted text-sm">זמן הנקה היום</p><b className="text-2xl">{formatDuration(totalToday)}</b></Card>
+        <Card><p className="theme-muted text-sm">משך ממוצע</p><b className="text-2xl">{formatDuration(avg)}</b></Card>
+        <Card><p className="theme-muted text-sm">מאז האכלה</p><b className="text-xl">{timeAgo(latest?.endTime)}</b></Card>
+        <Card><p className="theme-muted text-sm">צד דומיננטי</p><b className="text-2xl">{sideTotals.right >= sideTotals.left ? 'ימין' : 'שמאל'}</b></Card>
+        <Card><p className="theme-muted text-sm">הנקות לילה</p><b className="text-3xl">{nightFeedings}</b></Card>
       </div>
       <Chart title="הנקות לפי יום"><ResponsiveContainer width="100%" height={190}><BarChart data={feedingData}><CartesianGrid stroke="#DDEAF5" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="day" stroke="#8A94A6" /><YAxis allowDecimals={false} stroke="#8A94A6" /><Tooltip /><Bar dataKey="count" fill="#A9D8F5" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></Chart>
       <Chart title="משך ממוצע בדקות"><ResponsiveContainer width="100%" height={190}><LineChart data={feedingData}><CartesianGrid stroke="#DDEAF5" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="day" stroke="#8A94A6" /><YAxis stroke="#8A94A6" /><Tooltip /><Line type="monotone" dataKey="avg" stroke="#F7CFE1" strokeWidth={3} dot={{ r: 4, fill: '#F7CFE1' }} /></LineChart></ResponsiveContainer></Chart>
@@ -47,5 +47,5 @@ export function Statistics({ feedings, pumping, bottles, settings }: { feedings:
 }
 
 function Chart({ title, children }: { title: string; children: ReactNode }) {
-  return <div className="rounded-3xl border border-white/85 bg-white/90 p-4 shadow-soft"><h2 className="mb-3 font-extrabold">{title}</h2>{children}</div>;
+  return <div className="theme-card rounded-3xl p-4"><h2 className="mb-3 font-extrabold">{title}</h2>{children}</div>;
 }

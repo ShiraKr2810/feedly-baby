@@ -14,12 +14,12 @@ export function Settings({ baby, settings, onBaby, onSettings, onReset }: { baby
   };
   return <section className="space-y-4">
     <div><p className="text-sm font-bold text-primary-hover">התאמה אישית</p><h1 className="text-3xl font-extrabold">הגדרות</h1></div>
-    <div className="space-y-3 rounded-3xl border border-white/85 bg-white/90 p-5 shadow-soft">
-      <label><span className="mb-1 block text-sm font-bold text-text-main/60">שם התינוק/ת</span><input className="field" value={baby.name} onChange={(e) => onBaby({ ...baby, name: e.target.value })} /></label>
-      <label><span className="mb-1 block text-sm font-bold text-text-main/60">תאריך לידה</span><input className="field" type="date" value={baby.birthDate} onChange={(e) => onBaby({ ...baby, birthDate: e.target.value })} /></label>
+    <div className="theme-card space-y-3 rounded-3xl p-5">
+      <label><span className="theme-muted mb-1 block text-sm font-bold">שם התינוק/ת</span><input className="field" value={baby.name} onChange={(e) => onBaby({ ...baby, name: e.target.value })} /></label>
+      <label><span className="theme-muted mb-1 block text-sm font-bold">תאריך לידה</span><input className="field" type="date" value={baby.birthDate} onChange={(e) => onBaby({ ...baby, birthDate: e.target.value })} /></label>
       <div className="grid grid-cols-2 gap-3">
-        <label><span className="mb-1 block text-sm font-bold text-text-main/60">לילה מתחיל</span><input className="field" type="time" value={settings.nightStart} onChange={(e) => onSettings({ ...settings, nightStart: e.target.value })} /></label>
-        <label><span className="mb-1 block text-sm font-bold text-text-main/60">לילה מסתיים</span><input className="field" type="time" value={settings.nightEnd} onChange={(e) => onSettings({ ...settings, nightEnd: e.target.value })} /></label>
+        <label><span className="theme-muted mb-1 block text-sm font-bold">לילה מתחיל</span><input className="field" type="time" value={settings.nightStart} onChange={(e) => onSettings({ ...settings, nightStart: e.target.value })} /></label>
+        <label><span className="theme-muted mb-1 block text-sm font-bold">לילה מסתיים</span><input className="field" type="time" value={settings.nightEnd} onChange={(e) => onSettings({ ...settings, nightEnd: e.target.value })} /></label>
       </div>
       <select className="field" value={settings.themeMode} onChange={(e) => onSettings({ ...settings, themeMode: e.target.value as AppSettings['themeMode'] })}>
         <option value="auto">אוטומטי</option><option value="light">בהיר</option><option value="dark">כהה</option>

@@ -59,7 +59,23 @@ export interface Reminder {
   intervalMinutes?: number;
   specificTime?: string;
   isActive: boolean;
+  notificationId?: number;
   createdAt: string;
+}
+
+export interface ActiveTimer {
+  type: 'breastfeeding' | 'pumping';
+  babyId: string;
+  startTime: string;
+  startSide?: Side;
+  currentSide?: 'right' | 'left';
+  rightDurationSeconds: number;
+  leftDurationSeconds: number;
+  pumpingDurationSeconds: number;
+  isPaused: boolean;
+  pausedAt?: string;
+  accumulatedPausedDurationSeconds: number;
+  lastUpdatedAt: string;
 }
 
 export interface AppSettings {

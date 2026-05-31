@@ -27,7 +27,7 @@ export function QuickForm<T extends Record<string, string | number>>({
   };
 
   return (
-    <form onSubmit={submit} className={`rounded-3xl p-5 shadow-soft ${isNight ? 'border border-night-blue/15 bg-night-card' : 'border border-line bg-card'}`}>
+    <form onSubmit={submit} className={`theme-card rounded-3xl p-5 ${isNight ? 'border-night-blue/15' : ''}`}>
       <h2 className="mb-4 text-xl font-extrabold">{title}</h2>
       <div className="space-y-3">
         {fields.map((field) => (

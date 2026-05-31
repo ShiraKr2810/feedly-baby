@@ -16,7 +16,7 @@ export function Diapers({ babyId, items, onSave, onDelete, setPage }: { babyId: 
     setEditing(null); setForm(freshForm());
   };
   return <LogScreen title="טיטולים" active="diapers" setPage={setPage} icon={null} empty="">
-    <div className="space-y-3 rounded-3xl border border-white/85 bg-white/90 p-5 shadow-soft">
+    <div className="theme-card space-y-3 rounded-3xl p-5">
       <input className="field" type="datetime-local" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} />
       <select className="field" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}><option value="wet">רטוב</option><option value="dirty">יציאה</option><option value="both">גם וגם</option></select>
       <input className="field" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="הערה, אם יש" />

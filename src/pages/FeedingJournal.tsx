@@ -36,7 +36,7 @@ export function FeedingJournal({
       <JournalTabs active="journal" onChange={setPage} />
       <input className="field" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
       {editing && (
-        <div className="space-y-3 rounded-3xl border border-white/85 bg-white/90 p-5 shadow-soft">
+        <div className="theme-card space-y-3 rounded-3xl p-5">
           <p className="font-extrabold">עריכת הנקה</p>
           <div className="grid grid-cols-2 gap-2">
             <input className="field" type="number" value={editForm.right} onChange={(event) => setEditForm({ ...editForm, right: Number(event.target.value) })} placeholder="ימין בדקות" />
@@ -63,12 +63,12 @@ export function FeedingJournal({
       ) : (
         <div className="space-y-3">
           {items.map((feeding) => (
-            <article key={feeding.id} className="rounded-3xl border border-white/85 bg-white/90 p-4 shadow-soft">
+            <article key={feeding.id} className="theme-card rounded-3xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-extrabold">{formatDateTime(feeding.startTime)}</p>
-                  <p className="text-sm text-text-main/60">סה״כ {formatDuration(feeding.totalDurationSeconds)} · התחלה {sideLabel(feeding.startSide)}</p>
-                  <p className="text-sm text-text-main/60">ימין {formatDuration(feeding.rightDurationSeconds)} · שמאל {formatDuration(feeding.leftDurationSeconds)}</p>
+                  <p className="theme-muted text-sm">סה״כ {formatDuration(feeding.totalDurationSeconds)} · התחלה {sideLabel(feeding.startSide)}</p>
+                  <p className="theme-muted text-sm">ימין {formatDuration(feeding.rightDurationSeconds)} · שמאל {formatDuration(feeding.leftDurationSeconds)}</p>
                   {feeding.note && <p className="mt-2 text-sm">{feeding.note}</p>}
                   {feeding.needsReview && <span className="mt-2 inline-block rounded-full bg-pink-surface px-3 py-1 text-xs font-bold text-primary-text">דורש השלמה</span>}
                 </div>

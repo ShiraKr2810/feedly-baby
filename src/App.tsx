@@ -14,13 +14,17 @@ import { Reminders } from './pages/Reminders';
 import { Settings } from './pages/Settings';
 import { useBabyData } from './hooks/useBabyData';
 import { useNightMode } from './hooks/useNightMode';
+import { useActiveTimer } from './hooks/useActiveTimer';
 import { Page } from './types';
 import { storageService } from './services/storageService';
+import { activeTimerToFeedingSession } from './services/activeTimerUtils';
+import { cancelReminderNotification, cancelReminderNotifications, scheduleReminderNotification } from './services/localNotificationService';
 
 export default function App() {
   const { data, setData } = useBabyData();
   const [page, setPage] = useState<Page>('dashboard');
   const isNight = useNightMode(data.settings);
+  const timer = useActiveTimer();
 
   if (!data.baby) {
     return <Onboarding onDone={(baby, settings) => setData((current) => ({ ...current, baby, settings }))} />;
@@ -32,10 +36,18 @@ export default function App() {
     return exists ? items.map((current) => (current.id === item.id ? item : current)) : [item, ...items];
   };
 
+  const finishActiveFeeding = (quick = false, note?: string) => {
+    if (!timer.snapshot || timer.snapshot.type !== 'breastfeeding') return;
+    const feeding = activeTimerToFeedingSession(timer.snapshot, quick, note);
+    timer.clearTimer();
+    setData((current) => ({ ...current, feedings: [feeding, ...current.feedings] }));
+    setPage(feeding.needsReview ? 'night' : 'dashboard');
+  };
+
   const screen = (() => {
     switch (page) {
       case 'timer':
-        return <FeedingTimer babyId={babyId} isNight={isNight} onCancel={() => setPage('dashboard')} onSave={(feeding) => { setData((current) => ({ ...current, feedings: [feeding, ...current.feedings] })); setPage(feeding.needsReview ? 'night' : 'dashboard'); }} />;
+        return <FeedingTimer babyId={babyId} isNight={isNight} timer={timer} onCancel={() => setPage('dashboard')} onSave={finishActiveFeeding} />;
       case 'journal':
         return <FeedingJournal feedings={data.feedings} onUpdate={(feeding) => setData((current) => ({ ...current, feedings: current.feedings.map((item) => item.id === feeding.id ? feeding : item) }))} onDelete={(id) => setData((current) => ({ ...current, feedings: current.feedings.filter((item) => item.id !== id) }))} setPage={setPage} />;
       case 'pumping':
@@ -49,11 +61,11 @@ export default function App() {
       case 'night':
         return <NightSummary feedings={data.feedings} settings={data.settings} onReviewed={() => { setData((current) => ({ ...current, settings: { ...current.settings, reviewedNightKey: new Date().toISOString().slice(0, 10) } })); setPage('dashboard'); }} onUpdate={(feeding) => setData((current) => ({ ...current, feedings: current.feedings.map((item) => item.id === feeding.id ? feeding : item) }))} />;
       case 'reminders':
-        return <Reminders babyId={babyId} reminders={data.reminders} onSave={(item) => setData((current) => ({ ...current, reminders: [item, ...current.reminders] }))} onDelete={(id) => setData((current) => ({ ...current, reminders: current.reminders.filter((item) => item.id !== id) }))} />;
+        return <Reminders babyId={babyId} reminders={data.reminders} onSave={async (item) => { const scheduled = await scheduleReminderNotification(item); setData((current) => ({ ...current, reminders: [scheduled, ...current.reminders] })); }} onDelete={async (id) => { const reminder = data.reminders.find((item) => item.id === id); if (reminder) await cancelReminderNotification(reminder); setData((current) => ({ ...current, reminders: current.reminders.filter((item) => item.id !== id) })); }} onToggle={async (item) => { const updated = { ...item, isActive: !item.isActive }; if (updated.isActive) { const scheduled = await scheduleReminderNotification(updated); setData((current) => ({ ...current, reminders: current.reminders.map((reminder) => reminder.id === item.id ? scheduled : reminder) })); } else { await cancelReminderNotification(item); setData((current) => ({ ...current, reminders: current.reminders.map((reminder) => reminder.id === item.id ? updated : reminder) })); } }} />;
       case 'settings':
-        return <Settings baby={data.baby} settings={data.settings} onBaby={(baby) => setData((current) => ({ ...current, baby }))} onSettings={(settings) => setData((current) => ({ ...current, settings }))} onReset={() => { storageService.resetAll(); setData((current) => ({ ...current, baby: null, feedings: [], pumping: [], bottles: [], diapers: [], reminders: [] })); }} />;
+        return <Settings baby={data.baby} settings={data.settings} onBaby={(baby) => setData((current) => ({ ...current, baby }))} onSettings={(settings) => setData((current) => ({ ...current, settings }))} onReset={async () => { await cancelReminderNotifications(data.reminders); timer.clearTimer(); storageService.resetAll(); setData((current) => ({ ...current, baby: null, feedings: [], pumping: [], bottles: [], diapers: [], reminders: [] })); }} />;
       default:
-        return <Dashboard baby={data.baby} feedings={data.feedings} settings={data.settings} isNight={isNight} setPage={setPage} />;
+        return <Dashboard baby={data.baby} feedings={data.feedings} settings={data.settings} isNight={isNight} activeTimer={timer.snapshot} onFinishActiveTimer={() => finishActiveFeeding(false)} onCancelActiveTimer={timer.clearTimer} setPage={setPage} />;
     }
   })();
 

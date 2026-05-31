@@ -13,14 +13,14 @@ export function NightSummary({ feedings, settings, onUpdate, onReviewed }: { fee
   };
   return <section className="space-y-4">
     <div><p className="text-sm font-bold text-primary-hover">בוקר טוב</p><h1 className="text-3xl font-extrabold">סיכום לילה</h1></div>
-    <div className="rounded-3xl border border-white/85 bg-white/90 p-5 shadow-soft">
-      <p className="text-text-main/60">הנקות בלילה</p><p className="text-5xl font-extrabold">{nightItems.length}</p>
-      <p className="mt-2 text-sm text-text-main/60">{nightItems.map((item) => formatTime(item.startTime)).join(' · ') || 'לא נמצאו הנקות לילה'}</p>
+    <div className="theme-card rounded-3xl p-5">
+      <p className="theme-muted">הנקות בלילה</p><p className="text-5xl font-extrabold">{nightItems.length}</p>
+      <p className="theme-muted mt-2 text-sm">{nightItems.map((item) => formatTime(item.startTime)).join(' · ') || 'לא נמצאו הנקות לילה'}</p>
     </div>
     <div className="space-y-3">
       {nightItems.map((item) => {
         const draft = getDraft(item);
-        return <article key={item.id} className="rounded-3xl border border-white/85 bg-white/90 p-4 shadow-soft">
+        return <article key={item.id} className="theme-card rounded-3xl p-4">
           <p className="font-extrabold">{formatDateTime(item.startTime)} · {formatDuration(item.totalDurationSeconds)}</p>
           {(item.needsReview || item.isIncomplete) && <div className="mt-3 space-y-2">
             <p className="text-sm font-bold text-primary-text">הנקה לא סגורה, אפשר לתקן עכשיו</p>

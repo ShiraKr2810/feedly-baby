@@ -48,4 +48,44 @@ button {
   .night-field {
     @apply border-night-blue/20 bg-white/10 text-white placeholder:text-white/45 focus:border-night-blue focus:ring-night-blue/25;
   }
+
+  .theme-card {
+    @apply border border-line/80 bg-card text-text-main shadow-soft;
+  }
+
+  .theme-muted {
+    @apply text-text-muted;
+  }
+
+  .theme-helper {
+    @apply bg-blue-surface text-text-muted;
+  }
+
+  .night-mode .theme-card {
+    @apply border-night-blue/20 bg-night-card text-white shadow-night;
+  }
+
+  .night-mode .theme-muted {
+    @apply text-white/65;
+  }
+
+  .night-mode .theme-helper {
+    @apply bg-white/10 text-white/70;
+  }
+
+  .night-mode .field {
+    @apply border-night-blue/20 bg-night-card text-white placeholder:text-white/45 focus:border-night-blue focus:bg-night-card focus:ring-night-blue/25;
+  }
+
+  .night-mode .field option {
+    @apply bg-night-card text-white;
+  }
+
+  .night-mode .theme-button-secondary {
+    @apply border-night-blue/20 bg-white/10 text-white hover:bg-white/15;
+  }
+
+  .night-mode .theme-button-ghost {
+    @apply text-white/70 hover:bg-white/10;
+  }
 }
