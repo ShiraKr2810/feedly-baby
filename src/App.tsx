@@ -18,7 +18,7 @@ import { useActiveTimer } from './hooks/useActiveTimer';
 import { Page } from './types';
 import { storageService } from './services/storageService';
 import { activeTimerToFeedingSession } from './services/activeTimerUtils';
-import { cancelReminderNotification, cancelReminderNotifications, scheduleReminderNotification } from './services/localNotificationService';
+import { cancelReminderNotification, cancelReminderNotifications, reminderBaseline, rescheduleActiveReminderNotifications, scheduleReminderNotification } from './services/localNotificationService';
 
 export default function App() {
   const { data, setData } = useBabyData();
@@ -36,11 +36,13 @@ export default function App() {
     return exists ? items.map((current) => (current.id === item.id ? item : current)) : [item, ...items];
   };
 
-  const finishActiveFeeding = (quick = false, note?: string) => {
+  const finishActiveFeeding = async (quick = false, note?: string) => {
     if (!timer.snapshot || timer.snapshot.type !== 'breastfeeding') return;
     const feeding = activeTimerToFeedingSession(timer.snapshot, quick, note);
+    const feedings = [feeding, ...data.feedings];
+    const reminders = await rescheduleActiveReminderNotifications(data.reminders, feedings, data.pumping);
     timer.clearTimer();
-    setData((current) => ({ ...current, feedings: [feeding, ...current.feedings] }));
+    setData((current) => ({ ...current, feedings: [feeding, ...current.feedings], reminders }));
     setPage(feeding.needsReview ? 'night' : 'dashboard');
   };
 
@@ -49,9 +51,9 @@ export default function App() {
       case 'timer':
         return <FeedingTimer babyId={babyId} isNight={isNight} timer={timer} onCancel={() => setPage('dashboard')} onSave={finishActiveFeeding} />;
       case 'journal':
-        return <FeedingJournal feedings={data.feedings} onUpdate={(feeding) => setData((current) => ({ ...current, feedings: current.feedings.map((item) => item.id === feeding.id ? feeding : item) }))} onDelete={(id) => setData((current) => ({ ...current, feedings: current.feedings.filter((item) => item.id !== id) }))} setPage={setPage} />;
+        return <FeedingJournal feedings={data.feedings} onUpdate={async (feeding) => { const feedings = data.feedings.map((item) => item.id === feeding.id ? feeding : item); const reminders = await rescheduleActiveReminderNotifications(data.reminders, feedings, data.pumping); setData((current) => ({ ...current, feedings, reminders })); }} onDelete={async (id) => { const feedings = data.feedings.filter((item) => item.id !== id); const reminders = await rescheduleActiveReminderNotifications(data.reminders, feedings, data.pumping); setData((current) => ({ ...current, feedings, reminders })); }} setPage={setPage} />;
       case 'pumping':
-        return <Pumping babyId={babyId} items={data.pumping} setPage={setPage} onSave={(item) => setData((current) => ({ ...current, pumping: upsert(current.pumping, item) }))} onDelete={(id) => setData((current) => ({ ...current, pumping: current.pumping.filter((item) => item.id !== id) }))} />;
+        return <Pumping babyId={babyId} items={data.pumping} setPage={setPage} onSave={async (item) => { const pumping = upsert(data.pumping, item); const reminders = await rescheduleActiveReminderNotifications(data.reminders, data.feedings, pumping); setData((current) => ({ ...current, pumping, reminders })); }} onDelete={async (id) => { const pumping = data.pumping.filter((item) => item.id !== id); const reminders = await rescheduleActiveReminderNotifications(data.reminders, data.feedings, pumping); setData((current) => ({ ...current, pumping, reminders })); }} />;
       case 'bottles':
         return <Bottles babyId={babyId} items={data.bottles} setPage={setPage} onSave={(item) => setData((current) => ({ ...current, bottles: upsert(current.bottles, item) }))} onDelete={(id) => setData((current) => ({ ...current, bottles: current.bottles.filter((item) => item.id !== id) }))} />;
       case 'diapers':
@@ -59,9 +61,9 @@ export default function App() {
       case 'statistics':
         return <Statistics feedings={data.feedings} pumping={data.pumping} bottles={data.bottles} settings={data.settings} />;
       case 'night':
-        return <NightSummary feedings={data.feedings} settings={data.settings} onReviewed={() => { setData((current) => ({ ...current, settings: { ...current.settings, reviewedNightKey: new Date().toISOString().slice(0, 10) } })); setPage('dashboard'); }} onUpdate={(feeding) => setData((current) => ({ ...current, feedings: current.feedings.map((item) => item.id === feeding.id ? feeding : item) }))} />;
+        return <NightSummary feedings={data.feedings} settings={data.settings} onReviewed={() => { setData((current) => ({ ...current, settings: { ...current.settings, reviewedNightKey: new Date().toISOString().slice(0, 10) } })); setPage('dashboard'); }} onUpdate={async (feeding) => { const feedings = data.feedings.map((item) => item.id === feeding.id ? feeding : item); const reminders = await rescheduleActiveReminderNotifications(data.reminders, feedings, data.pumping); setData((current) => ({ ...current, feedings, reminders })); }} />;
       case 'reminders':
-        return <Reminders babyId={babyId} reminders={data.reminders} onSave={async (item) => { const scheduled = await scheduleReminderNotification(item); setData((current) => ({ ...current, reminders: [scheduled, ...current.reminders] })); }} onDelete={async (id) => { const reminder = data.reminders.find((item) => item.id === id); if (reminder) await cancelReminderNotification(reminder); setData((current) => ({ ...current, reminders: current.reminders.filter((item) => item.id !== id) })); }} onToggle={async (item) => { const updated = { ...item, isActive: !item.isActive }; if (updated.isActive) { const scheduled = await scheduleReminderNotification(updated); setData((current) => ({ ...current, reminders: current.reminders.map((reminder) => reminder.id === item.id ? scheduled : reminder) })); } else { await cancelReminderNotification(item); setData((current) => ({ ...current, reminders: current.reminders.map((reminder) => reminder.id === item.id ? updated : reminder) })); } }} />;
+        return <Reminders babyId={babyId} reminders={data.reminders} feedings={data.feedings} pumping={data.pumping} onSave={async (item) => { const scheduled = await scheduleReminderNotification(item, reminderBaseline(item, data.feedings, data.pumping)); setData((current) => ({ ...current, reminders: [scheduled, ...current.reminders] })); }} onDelete={async (id) => { const reminder = data.reminders.find((item) => item.id === id); if (reminder) await cancelReminderNotification(reminder); setData((current) => ({ ...current, reminders: current.reminders.filter((item) => item.id !== id) })); }} onToggle={async (item) => { const updated = { ...item, isActive: !item.isActive }; if (updated.isActive) { const scheduled = await scheduleReminderNotification(updated, reminderBaseline(updated, data.feedings, data.pumping)); setData((current) => ({ ...current, reminders: current.reminders.map((reminder) => reminder.id === item.id ? scheduled : reminder) })); } else { await cancelReminderNotification(item); setData((current) => ({ ...current, reminders: current.reminders.map((reminder) => reminder.id === item.id ? updated : reminder) })); } }} />;
       case 'settings':
         return <Settings baby={data.baby} settings={data.settings} onBaby={(baby) => setData((current) => ({ ...current, baby }))} onSettings={(settings) => setData((current) => ({ ...current, settings }))} onReset={async () => { await cancelReminderNotifications(data.reminders); timer.clearTimer(); storageService.resetAll(); setData((current) => ({ ...current, baby: null, feedings: [], pumping: [], bottles: [], diapers: [], reminders: [] })); }} />;
       default:

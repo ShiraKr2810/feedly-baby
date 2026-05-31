@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Reminder } from '../types';
+import { FeedingSession, PumpingSession, Reminder } from '../types';
 
 const isNativeApp = () => Capacitor.isNativePlatform();
 
@@ -20,8 +20,37 @@ const ensureNotificationPermission = async () => {
   return requested.display === 'granted';
 };
 
-export async function scheduleReminderNotification(reminder: Reminder): Promise<Reminder> {
-  if (!isNativeApp() || !reminder.isActive || !reminder.intervalMinutes) return reminder;
+const withoutNotificationId = (reminder: Reminder): Reminder => {
+  const { notificationId: _notificationId, ...rest } = reminder;
+  return rest;
+};
+
+export const completedFeedingEndTime = (feeding: FeedingSession) => {
+  if (feeding.isIncomplete || feeding.needsReview) return undefined;
+  if (feeding.endTime) return feeding.endTime;
+  return new Date(new Date(feeding.startTime).getTime() + feeding.totalDurationSeconds * 1000).toISOString();
+};
+
+export const latestCompletedFeedingEndTime = (feedings: FeedingSession[]) =>
+  feedings
+    .map(completedFeedingEndTime)
+    .filter((time): time is string => Boolean(time))
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+
+export const latestPumpingTime = (pumping: PumpingSession[]) =>
+  [...pumping]
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())[0]?.time;
+
+export const reminderBaseline = (reminder: Reminder, feedings: FeedingSession[], pumping: PumpingSession[]) =>
+  reminder.type === 'feeding' ? latestCompletedFeedingEndTime(feedings) : latestPumpingTime(pumping);
+
+export async function scheduleReminderNotification(reminder: Reminder, baseline?: string): Promise<Reminder> {
+  if (!reminder.isActive || !reminder.intervalMinutes) return reminder;
+  if (!baseline) {
+    await cancelReminderNotification(reminder);
+    return withoutNotificationId(reminder);
+  }
+  if (!isNativeApp()) return reminder;
 
   try {
     if (!(await ensureNotificationPermission())) return reminder;
@@ -31,8 +60,11 @@ export async function scheduleReminderNotification(reminder: Reminder): Promise<
       await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
     }
 
-    // Android schedules the first arbitrary-minute reminder reliably. Repeating
-    // intervals can be added later with a background rescheduler after delivery.
+    const requestedTime = new Date(baseline).getTime() + reminder.intervalMinutes * 60_000;
+    const at = new Date(Math.max(requestedTime, Date.now() + 60_000));
+
+    // Every relevant saved session reschedules this notification. Arbitrary-minute
+    // background repeats can be added later without changing the reminder model.
     await LocalNotifications.schedule({
       notifications: [
         {
@@ -40,7 +72,7 @@ export async function scheduleReminderNotification(reminder: Reminder): Promise<
           title: reminder.title,
           body: reminder.type === 'feeding' ? 'הגיע הזמן לבדוק אם הגיע זמן להנקה.' : 'הגיע הזמן לשאיבה.',
           schedule: {
-            at: new Date(Date.now() + reminder.intervalMinutes * 60_000),
+            at,
             allowWhileIdle: true,
           },
           extra: { reminderId: reminder.id, reminderType: reminder.type },
@@ -65,4 +97,18 @@ export async function cancelReminderNotification(reminder: Reminder) {
 
 export async function cancelReminderNotifications(reminders: Reminder[]) {
   await Promise.all(reminders.map(cancelReminderNotification));
+}
+
+export async function rescheduleActiveReminderNotifications(
+  reminders: Reminder[],
+  feedings: FeedingSession[],
+  pumping: PumpingSession[],
+) {
+  return Promise.all(
+    reminders.map((reminder) =>
+      reminder.isActive
+        ? scheduleReminderNotification(reminder, reminderBaseline(reminder, feedings, pumping))
+        : Promise.resolve(reminder),
+    ),
+  );
 }

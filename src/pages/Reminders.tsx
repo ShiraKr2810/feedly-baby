@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Reminder } from '../types';
+import { FeedingSession, PumpingSession, Reminder } from '../types';
 import { Button } from '../components/ui/Button';
 import { uid } from '../services/storageService';
 import { Bell, Clock, Power, Trash2 } from 'lucide-react';
+import { reminderBaseline } from '../services/localNotificationService';
 
 const reminderIntervalText = (minutes?: number) => {
   if (!minutes) return 'ללא מרווח קבוע';
@@ -13,12 +14,16 @@ const reminderIntervalText = (minutes?: number) => {
 export function Reminders({
   babyId,
   reminders,
+  feedings,
+  pumping,
   onSave,
   onDelete,
   onToggle,
 }: {
   babyId: string;
   reminders: Reminder[];
+  feedings: FeedingSession[];
+  pumping: PumpingSession[];
   onSave: (item: Reminder) => void | Promise<void>;
   onDelete: (id: string) => void | Promise<void>;
   onToggle: (item: Reminder) => void | Promise<void>;
@@ -59,8 +64,8 @@ export function Reminders({
             <input
               className="field pl-16"
               type="number"
-              min="15"
-              step="15"
+              min="1"
+              step="1"
               value={intervalMinutes}
               placeholder="לדוגמה: 180"
               onChange={(event) => setInterval(Number(event.target.value))}
@@ -74,7 +79,9 @@ export function Reminders({
       </div>
 
       <div className="space-y-3">
-        {reminders.map((item) => (
+        {reminders.map((item) => {
+          const isWaiting = item.isActive && !reminderBaseline(item, feedings, pumping);
+          return (
           <article key={item.id} className={`theme-card flex items-center justify-between rounded-3xl p-4 ${item.isActive ? '' : 'opacity-65'}`}>
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pink-surface text-primary-text">
@@ -83,6 +90,7 @@ export function Reminders({
               <div>
                 <p className="font-extrabold">{item.title}</p>
                 <p className="theme-muted text-sm">{reminderIntervalText(item.intervalMinutes)}</p>
+                {isWaiting && <p className="mt-1 text-sm font-bold text-primary-text">{item.type === 'feeding' ? 'התזכורת תתחיל אחרי ההנקה הראשונה' : 'התזכורת תתחיל אחרי השאיבה הראשונה'}</p>}
               </div>
             </div>
             <div className="flex gap-1">
@@ -90,7 +98,8 @@ export function Reminders({
               <Button variant="ghost" className="theme-muted h-10 min-h-10 px-3" onClick={() => onDelete(item.id)} aria-label="מחיקה"><Trash2 size={18} /></Button>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
